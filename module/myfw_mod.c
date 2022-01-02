@@ -208,7 +208,7 @@ static ssize_t datadev_read(struct file *file, char __user *buf, size_t size, lo
 		// 返回值大小 = 连接数 * Connection大小
 		ret = connection_num * (sizeof(Connection) - 4);
 		if (ret > size) {
-			printk("Read Overflow\n");
+			printk("Connection: Read Overflow\n");
 			return size;
 		}
 
@@ -235,19 +235,19 @@ static ssize_t datadev_read(struct file *file, char __user *buf, size_t size, lo
 		// 开锁
 		hashLock = 0;
 		copy_to_user(buf, databuf, ret);
-		printk("Read %d bytes\n", ret);
+		printk("Connection: Read %d bytes\n", ret);
 	}
 	// 获取日志表
 	else if (op_flag == OP_GET_LOG) {
 		ret = log_num * sizeof(Log);
 		if (ret > size) {
-			printk("Read Overflow\n");
+			printk("Log: Read Overflow\n");
 			return size;
 		}
 
 		memcpy(databuf, logs, ret);
 		copy_to_user(buf, databuf, ret);
-		printk("Read %d bytes\n", ret);
+		printk("Log: Read %d bytes\n", ret);
 	}
 	// TODO:获取NAT表
 	else if (op_flag == 3) {
@@ -273,22 +273,24 @@ static ssize_t datadev_write(struct file *file, const char __user *user, size_t 
 
 	copy_from_user(databuf, user, size);
 
-	if (databuf[size-1] == OP_WRITE_RULE) {
+	int opt = 0x03 & databuf[size-1];
+
+	if (opt == OP_WRITE_RULE) {
 		op_flag = 0;
 		rule_num = (size-1) / sizeof(Rule);
 		printk("Get %d rules\n", rule_num);
-		memcpy(rules, databuf, size-1);
+		memcpy(rules, databuf+1, size-1);
 		print_rules();
 	}
-	else if (databuf[size-1] == OP_GET_CONNECT) {
+	else if (opt == OP_GET_CONNECT) {
 		op_flag = OP_GET_CONNECT;
 		printk("Write Connections\n");
 	}
-	else if (databuf[size-1] == OP_GET_LOG) {
+	else if (opt == OP_GET_LOG) {
 		op_flag = OP_GET_LOG;
 		printk("Write Log\n");
 	}
-	else if (databuf[size-1] == OP_GET_NAT) {
+	else if (opt == OP_GET_NAT) {
 		op_flag = OP_GET_NAT;
 		printk("Write NAT\n");
 	}
@@ -389,8 +391,8 @@ void print_rules(void) {
 	for(i=0; i<rule_num; ++i) {
 		// srcIP & dstIP
 		printk(NIPQUAD_FMT " ", NIPQUAD(rules[i].src_ip), rules[i].src_ip);
-		printk(NIPQUAD_FMT " ", NIPQUAD(rules[i].src_mask), rules[i].src_mask);
 		printk(NIPQUAD_FMT " ", NIPQUAD(rules[i].dst_ip), rules[i].dst_ip);
+		printk(NIPQUAD_FMT " ", NIPQUAD(rules[i].src_mask), rules[i].src_mask);
 		printk(NIPQUAD_FMT " ", NIPQUAD(rules[i].dst_mask), rules[i].dst_mask);
 
 		// srcPort

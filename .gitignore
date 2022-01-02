@@ -1,7 +1,12 @@
 .vscode
+rule.db
+testfile
 itu
 uti
 client/*.o
 client/myFirewall
 client/Util
 client/rule.db
+client/testfile
+
+*test*

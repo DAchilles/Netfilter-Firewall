@@ -27,7 +27,7 @@ vector<Rule> ruleList;
 vector<Log> logList;
 vector<Connection> connectionList;
 
-static string DEV_NAME  = "testfile";
+static string DEV_NAME  = "/dev/myfw";
 static string RULE_DB   = "rule.db";
 
 void getRules() {
@@ -56,12 +56,12 @@ void getConnection() {
     char databuf[20480];
     ifstream inputKernel;
     inputKernel.open(DEV_NAME, ios::binary);
-    // inputKernel >> databuf;
+    inputKernel >> databuf;
 
-    // 将connection输入到List中
-    while (inputKernel.read(databuf, sizeof(Connection)))
+    // FIXME:将connection输入到List中
+    for(int i=0; i < sizeof(databuf)/sizeof(Connection) ; ++i)
     {
-        Connection *con = new Connection(databuf, 0);
+        Connection *con = new Connection(databuf, i*sizeof(Connection));
         connectionList.push_back(*con);
     }
     inputKernel.close();
@@ -75,14 +75,15 @@ void getLogs() {
     outputKernel.close();
 
     // 开始读取Logs
+    cout << "Get logs" << endl;
     char databuf[20480];
     ifstream inputKernel;
-    inputKernel.open(DEV_NAME, ios::binary);
+    inputKernel >> databuf;
 
-    // 将Logs输入到List中
-    while (inputKernel.read(databuf, sizeof(Log)))
+    // FIXME:将Logs输入到List中
+    for(int i=0; i < sizeof(databuf)/sizeof(Log) ; ++i)
     {
-        Log *log = new Log(databuf, 0);
+        Log *log = new Log(databuf, i*sizeof(Log));
         logList.push_back(*log);
     }
     inputKernel.close();
@@ -166,7 +167,7 @@ void commitRule() {
     }
     outputKernel.close();
 
-    cout << "Commit " << ruleList.size() << " rules";
+    cout << "Commit " << ruleList.size() << " rules" <<endl;
 }
 
 void test() {
@@ -201,19 +202,25 @@ int main(int argc, char* argv[]) {
     // printRules, printConnection, printLog
     if (fuc == "-p" || fuc == "--print") {
         if (argc == 2) {
+            getRules();
             printRules();
+            getConnection();
             printConnection();
+            getLogs();
             printLogs();
         }
         else if (argc == 3) {
             string opt = argv[2];
             if (opt == "r" || opt == "rule" || opt == "rules") {
+                getRules();
                 printRules();
             }
             else if (opt == "c" || opt == "connection") {
+                getConnection();
                 printConnection();
             }
             else if (opt == "l" || opt == "log" || opt == "logs") {
+                getLogs();
                 printLogs();
             }
             else {
