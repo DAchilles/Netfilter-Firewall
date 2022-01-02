@@ -1,20 +1,4 @@
-#include <iostream>
-#include <algorithm>
-#include <vector>
-
-#include <getopt.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <string.h>
-#include <asm/types.h>
-#include <linux/netlink.h>
-#include <linux/socket.h>
-#include <errno.h>
-#include <stdbool.h>
-#include <string.h>
+#include <string>
 
 // 协议号
 #define TCP			6
@@ -33,3 +17,59 @@
 #define OP_GET_CONNECT	1
 #define OP_GET_LOG		2
 #define OP_GET_NAT		3
+
+class Connection
+{
+public:
+    unsigned src_ip;
+	unsigned dst_ip;
+	int src_port;
+	int dst_port;
+	int protocol;
+	int time;
+   
+   void print();
+};
+
+class Log
+{
+public:
+	unsigned src_ip;
+	unsigned dst_ip;
+	int src_port;
+	int dst_port;
+	int protocol;
+	int action;
+
+    // void srcIP(std::string ip_str);
+    // void dstIP(std::string ip_str);
+
+    void print();
+};
+
+class Rule
+{
+public:
+    unsigned src_ip     = 0;
+	unsigned dst_ip     = 0;
+	unsigned src_mask   = 0;
+	unsigned dst_mask   = 0;
+	int src_port        = -1;
+	int dst_port        = -1;
+	int protocol        = -1;
+	int action          = true;
+	int log             = false;
+    
+    void srcIP(std::string ip_str);
+    void dstIP(std::string ip_str);
+    void srcMask(std::string ip_str);
+    void dstMask(std::string ip_str);
+
+    void print();
+
+};
+
+unsigned strToIp(std::string ip_str);
+std::string ipToStr(unsigned ip);
+unsigned strToPtc(std::string ptc_str);
+std::string ptcToStr(unsigned ptc);

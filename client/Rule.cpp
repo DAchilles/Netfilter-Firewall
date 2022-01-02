@@ -1,27 +1,7 @@
 #include "head.h"
-#include "Util.cpp"
+#include <iostream>
+#include <string>
 
-class Rule
-{
-public:
-    unsigned src_ip     = 0;
-	unsigned dst_ip     = 0;
-	unsigned src_mask   = 0;
-	unsigned dst_mask   = 0;
-	int src_port        = -1;
-	int dst_port        = -1;
-	int protocol        = -1;
-	int action          = true;
-	int log             = false;
-    
-    void srcIP(std::string ip_str);
-    void dstIP(std::string ip_str);
-    void srcMask(std::string ip_str);
-    void dstMask(std::string ip_str);
-
-    void print();
-
-};
 
 void Rule::srcIP(std::string ip_str) {
     src_ip = strToIp(ip_str);

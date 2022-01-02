@@ -1,4 +1,8 @@
 #include "head.h"
+#include <iostream>
+#include <string>
+#include <cstring>
+
 
 unsigned strToIp(std::string ip_str) {
     unsigned ip = 0;
