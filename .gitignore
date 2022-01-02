@@ -1,3 +1,7 @@
 .vscode
 itu
 uti
+client/*.o
+client/myFirewall
+client/Util
+client/rule.db

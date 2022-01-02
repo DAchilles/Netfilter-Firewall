@@ -2,6 +2,16 @@
 #include <iostream>
 #include <string>
 
+Log::Log(char *data, int offset) {
+    src_ip = byteToInt(data, offset);
+    dst_ip = byteToInt(data, offset + 4);
+    src_port = byteToInt(data, offset + 8);
+    dst_port = byteToInt(data, offset + 12);
+    protocol = byteToInt(data, offset + 16);
+    action = byteToInt(data, offset + 20);
+
+}
+
 void Log::print() {
     std::string ret;
     

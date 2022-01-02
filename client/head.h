@@ -28,7 +28,8 @@ public:
 	int protocol;
 	int time;
    
-   void print();
+	Connection(char *data, int offset);
+   	void print();
 };
 
 class Log
@@ -41,30 +42,29 @@ public:
 	int protocol;
 	int action;
 
-    // void srcIP(std::string ip_str);
-    // void dstIP(std::string ip_str);
-
+	Log(char *data, int offset);
     void print();
 };
 
 class Rule
 {
 public:
-    unsigned src_ip     = 0;
-	unsigned dst_ip     = 0;
-	unsigned src_mask   = 0;
-	unsigned dst_mask   = 0;
-	int src_port        = -1;
-	int dst_port        = -1;
-	int protocol        = -1;
-	int action          = true;
-	int log             = false;
+    unsigned src_ip;
+	unsigned dst_ip;
+	unsigned src_mask;
+	unsigned dst_mask;
+	int src_port;
+	int dst_port;
+	int protocol;
+	int action;
+	int log;
     
+	Rule();
+	Rule(char *data, int offset);
     void srcIP(std::string ip_str);
     void dstIP(std::string ip_str);
     void srcMask(std::string ip_str);
     void dstMask(std::string ip_str);
-
     void print();
 
 };
@@ -73,3 +73,14 @@ unsigned strToIp(std::string ip_str);
 std::string ipToStr(unsigned ip);
 unsigned strToPtc(std::string ptc_str);
 std::string ptcToStr(unsigned ptc);
+unsigned byteToInt(char *byte, int offset);
+
+void getRules();
+void getConnection();
+void getLogs();
+void printRules();
+void printConnection();
+void printLogs();
+void addRule(std::string sip, std::string dip, std::string smask, std::string dmask, int sport, int dport, int protocol, int action, int log);
+void commitRule();
+void test();
