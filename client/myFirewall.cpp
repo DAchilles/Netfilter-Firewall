@@ -89,18 +89,21 @@ void getLogs() {
 }
 
 void printRules() {
+    cout << "====================================================Rules===============================================" <<endl;
     for(int i=0; i<ruleList.size(); ++i) {
         ruleList[i].print();
     }
 }
 
 void printConnection() {
+    cout << "==================================================Connection============================================" <<endl;
     for(int i=0; i<connectionList.size(); ++i) {
         connectionList[i].print();
     }
 }
 
 void printLogs() {
+    cout << "=====================================================Logs===============================================" <<endl;
     for(int i=0; i<logList.size(); i++) {
         logList[i].print();
     }
@@ -179,8 +182,108 @@ void test() {
     printRules();
 }
 
+void help() {
+    cout << "Usage: myFirewall [Options]" <<endl;
+    cout << "\t-p, --print [Options] \n\t\tprint all data" << endl;
+    // cout << "\t-a, --add <src_ip> <dst_ip> <src_mask> <dst_mask> <src_port> <dst_port> <protocol> <action> <log>" << endl;
+    cout << "\t-a, --add <rule> \n\t\tadd a rule in database" << endl;
+    cout << "\t-d, --del <index1, index2...> \n\t\tdel rule in index" << endl;
+    cout << "\t-c, --commit \n\t\tcommit rules to kernel" << endl;
+}
+
 int main(int argc, char* argv[]) {
-    test();
+    if (argc < 2) {
+        help();
+        return 0;
+    }
+
+    string fuc = argv[1];
+    // printRules, printConnection, printLog
+    if (fuc == "-p" || fuc == "--print") {
+        if (argc == 2) {
+            printRules();
+            printConnection();
+            printLogs();
+        }
+        else if (argc == 3) {
+            string opt = argv[2];
+            if (opt == "r" || opt == "rule" || opt == "rules") {
+                printRules();
+            }
+            else if (opt == "c" || opt == "connection") {
+                printConnection();
+            }
+            else if (opt == "l" || opt == "log" || opt == "logs") {
+                printLogs();
+            }
+            else {
+                help();
+                return 0;
+            }
+        }
+        else {
+            help();
+            return 0;
+        }
+    }
+    // addRule
+    else if (fuc == "-a" || fuc == "--add") {
+        if (argc == 11) {
+            string sip = argv[2], dip = argv[3];
+            string smask = argv[4], dmask = argv[5];
+            int sport = ANY, dport = ANY, ptc = ANY, act = 1, loged = 0;
+            // src_port
+            if (strcmp(argv[6], "ANY") == 0) {
+                sport = ANY;
+            } else {
+                sport = atoi(argv[6]);
+            }
+            // dst_port
+            if (strcmp(argv[7], "ANY") == 0) {
+                dport = ANY;
+            } else {
+                dport = atoi(argv[7]);
+            }
+
+            // protocol
+            ptc = strToPtc(argv[8]);
+            // action
+            act = atoi(argv[9]);
+            // log
+            loged = atoi(argv[10]);
+
+            addRule(sip, dip, smask, dmask, sport, dport, ptc, act, loged);
+            getRules();
+            printRules();
+        }
+        else {
+            help();
+            return 0;
+        }
+    }
+    // delRule
+    else if (fuc == "-d" || fuc == "--del") {
+        for (int i=2; i<argc; ++i) {
+            int index = atoi(argv[i]);
+            if (index > 0) {
+                delRule(index - 1);
+            }
+        }
+        getRules();
+        printRules();
+    }
+    // commitRule
+    else if ((argc == 2) && (fuc == "-c" || fuc == "--commit")) {
+        commitRule();
+        getRules();
+        printRules();
+    }
+    else {
+        help();
+        return 0;
+    }
+    
+    return 0;
 }
 
 
