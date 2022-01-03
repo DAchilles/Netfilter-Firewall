@@ -53,8 +53,8 @@ void Rule::print() {
     ret += "src_port:" + std::to_string(src_port) + "\t";
     ret += "dst_port:" + std::to_string(dst_port) + "\t";
     ret += "protocol:" + ptcToStr(protocol) + "\t";
-    ret += "act:" + std::to_string(action) + "\t";
-    ret += "log:" + std::to_string(log);
+    ret += "act:" + toAct(action) + "\t";
+    ret += "log:" + toLog(log) + "\n";
 
-    std::cout << ret << "\n";
+    std::cout << ret;
 }

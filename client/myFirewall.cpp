@@ -53,16 +53,20 @@ void getConnection() {
     outputKernel.close();
 
     // 开始读取Connection
+    cout << "Get connection" << endl;
     char databuf[20480];
     ifstream inputKernel;
     inputKernel.open(DEV_NAME, ios::binary);
-    inputKernel >> databuf;
 
     // FIXME:将connection输入到List中
-    for(int i=0; i < sizeof(databuf)/sizeof(Connection) ; ++i)
-    {
-        Connection *con = new Connection(databuf, i*sizeof(Connection));
+    int i=0;
+    while (inputKernel.read(databuf, sizeof(Connection))) {
+        Connection *con = new Connection(databuf, 0);
         connectionList.push_back(*con);
+
+        if (++i == 10) {
+            break;
+        }
     }
     inputKernel.close();
 }
@@ -78,13 +82,17 @@ void getLogs() {
     cout << "Get logs" << endl;
     char databuf[20480];
     ifstream inputKernel;
-    inputKernel >> databuf;
+    inputKernel.open(DEV_NAME, ios::binary);
 
     // FIXME:将Logs输入到List中
-    for(int i=0; i < sizeof(databuf)/sizeof(Log) ; ++i)
-    {
-        Log *log = new Log(databuf, i*sizeof(Log));
+    int i=0;
+    while (inputKernel.read(databuf, sizeof(Log))) {
+        Log *log = new Log(databuf, 0);
         logList.push_back(*log);
+
+        if (++i == 10) {
+            break;
+        }
     }
     inputKernel.close();
 }

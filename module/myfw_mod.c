@@ -90,6 +90,21 @@ static Log logs[MAX_LOG_NUM];
 // 日志数
 static int log_num = 0;
 
+// // NAT结构
+// typedef struct {
+// 	unsigned nat_ip;
+// 	unsigned firewall_port;
+// 	unsigned nat_port;
+// } NAT;
+// // NAT表
+// static NAT natTable[MAX_NAT_NUM];
+// // NAT数
+// static int nat_num = 0;
+// // NAT相关设置
+// unsigned firewall_ip = 3232241536;	//192.168.23.128
+// unsigned nat_mask 	 = 0xFFFFFF00;  //255.255.255.0
+// unsigned firewall_port = 20000;		//
+
 // 连接结构
 typedef struct con{
 	unsigned src_ip;
@@ -119,6 +134,10 @@ static char databuf[20480];
 unsigned int hook_in(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
 // hook注销
 unsigned int hook_out(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
+// // NAT注册
+// unsigned int hook_nat_in(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
+// // NAT注销
+// unsigned int hook_nat_out(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
 // 字符设备打开
 static int datadev_open(struct inode *inode, struct file *filp);
 // 字符设备读取
@@ -156,6 +175,20 @@ static struct nf_hook_ops hook_out_ops = {
     .hooknum    = NF_INET_POST_ROUTING,	// hook注册点
     .priority   = NF_IP_PRI_FIRST       // 优先级
 };
+// // NAT注册结构体定义
+// static struct nf_hook_ops hook_nat_in_ops = {
+//     .hook		= hook_nat_in,			// hook处理函数
+//     .pf         = PF_INET,              // 协议类型
+//     .hooknum    = NF_INET_PRE_ROUTING,	// hook注册点
+//     .priority   = NF_IP_PRI_NAT_DST      // 优先级
+// };
+// // NAT注销结构体定义
+// static struct nf_hook_ops hook_nat_out_ops = {
+//     .hook		= hook_nat_out,			// hook处理函数
+//     .pf         = PF_INET,              // 协议类型
+//     .hooknum    = NF_INET_POST_ROUTING,	// hook注册点
+//     .priority   = NF_IP_PRI_NAT_SRC      // 优先级
+// };
 // 连接超时结构体定义
 static struct timer_list connect_timer = {
 	.function = time_out
@@ -188,6 +221,14 @@ unsigned int hook_out(void *priv, struct sk_buff *skb, const struct nf_hook_stat
 		return NF_DROP;
 	}
 }
+
+// unsigned int hook_nat_in(void *priv, struct sk_buff *skb, const struct nf_hook_state *state) {
+
+// }
+
+// unsigned int hook_nat_out(void *priv, struct sk_buff *skb, const struct nf_hook_state *state) {
+	
+// }
 
 static int datadev_open(struct inode *inode, struct file *file) {
 	printk(KERN_INFO "datadev open\n");

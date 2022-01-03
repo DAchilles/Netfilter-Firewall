@@ -50,10 +50,22 @@ std::string ptcToStr(unsigned ptc) {
 }
 
 unsigned byteToInt(char *byte, int offset) {
-    int x=0;
+    unsigned x=0;
     for(int i=0; i<4; ++i) {
         x <<= 8;
         x |= (byte[offset + 3 - i] & 0xff);
     }
     return x;
+}
+
+std::string toAct(int x) {
+    if (x) 
+        return "Accept";
+    return "Deny";
+}
+
+std::string toLog(int x) {
+    if (x)
+        return "Loged";
+    return "Unloged";
 }

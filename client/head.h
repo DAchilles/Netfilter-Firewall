@@ -74,6 +74,8 @@ std::string ipToStr(unsigned ip);
 unsigned strToPtc(std::string ptc_str);
 std::string ptcToStr(unsigned ptc);
 unsigned byteToInt(char *byte, int offset);
+std::string toAct(int x);
+std::string toLog(int x);
 
 void getRules();
 void getConnection();
