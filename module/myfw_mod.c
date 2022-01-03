@@ -544,7 +544,7 @@ bool check_pkg(struct sk_buff *skb) {
 			}
 
 			if (rules[i].log) {
-				printk("Match rule %u ", i);
+				printk("Match rule %d ", i);
 
 				if (rules[i].action)
 					printk("Accept\n");
@@ -607,11 +607,11 @@ static int __init myfirewall_init(void) {
 
 	printk("Myfw start\n");
 
-	addRules_test();
+	// addRules_test();
 	print_rules();
-	int i;
-	for(i = 0; i < 20; ++i)
-		printk("match default rule 0\n");
+	// int i;
+	// for(i = 0; i < 20; ++i)
+	// 	printk("match default rule 0\n");
 
 	return 0;
 }
