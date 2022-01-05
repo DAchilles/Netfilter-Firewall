@@ -90,20 +90,6 @@ static Log logs[MAX_LOG_NUM];
 // 日志数
 static int log_num = 0;
 
-// // NAT结构
-// typedef struct {
-// 	unsigned nat_ip;
-// 	unsigned firewall_port;
-// 	unsigned nat_port;
-// } NAT;
-// // NAT表
-// static NAT natTable[MAX_NAT_NUM];
-// // NAT数
-// static int nat_num = 0;
-// // NAT相关设置
-// unsigned firewall_ip = 3232241536;	//192.168.23.128
-// unsigned nat_mask 	 = 0xFFFFFF00;  //255.255.255.0
-// unsigned firewall_port = 20000;		//
 
 // 连接结构
 typedef struct con{
@@ -134,10 +120,6 @@ static char databuf[20480];
 unsigned int hook_in(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
 // hook注销
 unsigned int hook_out(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
-// NAT注册
-unsigned int hook_nat_in(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
-// NAT注销
-unsigned int hook_nat_out(void *priv, struct sk_buff *skb, const struct nf_hook_state *state);
 // 字符设备打开
 static int datadev_open(struct inode *inode, struct file *filp);
 // 字符设备读取
@@ -175,20 +157,6 @@ static struct nf_hook_ops hook_out_ops = {
     .hooknum    = NF_INET_POST_ROUTING,	// hook注册点
     .priority   = NF_IP_PRI_FIRST       // 优先级
 };
-// NAT注册结构体定义
-static struct nf_hook_ops hook_nat_in_ops = {
-    .hook		= hook_nat_in,			// hook处理函数
-    .pf         = PF_INET,              // 协议类型
-    .hooknum    = NF_INET_PRE_ROUTING,	// hook注册点
-    .priority   = NF_IP_PRI_NAT_DST      // 优先级
-};
-// NAT注销结构体定义
-static struct nf_hook_ops hook_nat_out_ops = {
-    .hook		= hook_nat_out,			// hook处理函数
-    .pf         = PF_INET,              // 协议类型
-    .hooknum    = NF_INET_POST_ROUTING,	// hook注册点
-    .priority   = NF_IP_PRI_NAT_SRC      // 优先级
-};
 // 连接超时结构体定义
 static struct timer_list connect_timer = {
 	.function = time_out
@@ -220,161 +188,6 @@ unsigned int hook_out(void *priv, struct sk_buff *skb, const struct nf_hook_stat
 	} else {
 		return NF_DROP;
 	}
-}
-
-unsigned int hook_nat_in(void *priv, struct sk_buff *skb, const struct nf_hook_state *state) {
-	return 
-		NF_ACCEPT;
-
-	int i, tot_len, ip_len;
-	unsigned src_ip,dst_ip,src_port, dst_port;
-	struct iphdr *ip;    
-	struct tcphdr *tcp;
-	struct udphdr *udp;
-	ip = ip_hdr(skb);
-	
-	//获得IP的原地址 目的地址 协议对应的端口
-	src_ip=ntohl(ip->saddr);
-	dst_ip=ntohl(ip->daddr);
-	//收到内网主机发来的包
-	if((src_ip&nat_mask)==(firewall_ip&nat_mask))return NF_ACCEPT;
-	//收到外网主机发来的包
-	if(ip->protocol==TCP)
-	{
-		tcp=tcp_hdr(skb);
-		src_port=ntohs(tcp->source);
-		dst_port=ntohs(tcp->dest);
-	}
-	else if(ip->protocol==UDP)
-	{
-		udp=udp_hdr(skb);
-		src_port=ntohs(udp->source);
-		dst_port=ntohs(udp->dest);
-	}
-	else if(ip->protocol==ICMP)
-	{
-		src_port=ICMP_PORT;
-		dst_port=ICMP_PORT;
-	}
-	for(i=0;i<nnum;++i)
-	{
-		if(dst_ip==firewall_ip && dst_port==natTable[i].firewall_port)
-		{
-			ip->daddr=htonl(natTable[i].nat_ip);
-			ip->check=0;
-			ip->check=ip_fast_csum(ip,ip->ihl);
-			ip_len=ip_hdrlen(skb);
-			tot_len=ntohs(ip->tot_len);
-			if(ip->protocol==TCP)
-			{
-				tcp->dest=htons((unsigned short)natTable[i].nat_port);
-				tcp->check=0;
-				skb->csum=csum_partial((unsigned char*)tcp,tot_len-ip_len,0);
-				tcp->check=csum_tcpudp_magic(ip->saddr,ip->daddr,tot_len-ip_len,ip->protocol,skb->csum);
-
-			}
-			else if(ip->protocol==UDP)
-			{
-				udp->dest=htons((unsigned short)natTable[i].nat_port);
-				udp->check=0;
-				skb->csum=csum_partial((unsigned char*)udp,tot_len-ip_len,0);
-				udp->check=csum_tcpudp_magic(ip->saddr,ip->daddr,tot_len-ip_len,ip->protocol,skb->csum);
-			}
-			else if(ip->protocol==ICMP)
-			{
-				
-			}
-			printk("### %d\n",i);
-			return NF_ACCEPT;
-		}
-	}
-	/*if((src_ip&nat_mask)==(firewall_ip&nat_mask))
-	{
-		natTable[nnum].nat_ip = src_ip;
-		natTable[nnum].nat_port = src_port;
-		natTable[nnum].firewall_port = firewall_port;
-		firewall_port++;
-		nnum++;
-		if(nnum==MAX_NAT_NUM)nnum=0;
-	}*/
-	return NF_ACCEPT;
-}
-
-unsigned int hook_nat_out(void *priv, struct sk_buff *skb, const struct nf_hook_state *state) {
-	return 
-		NF_ACCEPT;
-		
-	int i, tot_len, ip_len;
-	unsigned src_ip,dst_ip,src_port, dst_port;
-	struct iphdr *ip;    
-	struct tcphdr *tcp;
-	struct udphdr *udp;
-	ip = ip_hdr(skb);
-	
-	//获得IP的原地址 目的地址 协议对应的端口
-	src_ip=ntohl(ip->saddr);
-	dst_ip=ntohl(ip->daddr);
-	if(ip->protocol==TCP)
-	{
-		tcp=tcp_hdr(skb);
-		src_port=ntohs(tcp->source);
-		dst_port=ntohs(tcp->dest);
-	}
-	else if(ip->protocol==UDP)
-	{
-		udp=udp_hdr(skb);
-		src_port=ntohs(udp->source);
-		dst_port=ntohs(udp->dest);
-	}
-	else if(ip->protocol==ICMP)
-	{
-		src_port=ICMP_PORT;
-		dst_port=ICMP_PORT;
-	}
-	for(i=0;i<nnum;++i)
-	{
-		if(src_ip==natTable[i].nat_ip && src_port==natTable[i].nat_port)
-		{
-			ip->saddr=htonl(firewall_ip);
-			ip->check=0;
-			ip->check=ip_fast_csum(ip,ip->ihl);
-			ip_len=ip_hdrlen(skb);
-			tot_len=ntohs(ip->tot_len);
-			if(ip->protocol==TCP)
-			{
-				tcp->source=htons((unsigned short)natTable[i].nat_port);
-				tcp->check=0;
-				skb->csum=csum_partial((unsigned char*)tcp,tot_len-ip_len,0);
-				tcp->check=csum_tcpudp_magic(ip->saddr,ip->daddr,tot_len-ip_len,ip->protocol,skb->csum);
-			}
-			else if(ip->protocol==UDP)
-			{
-				udp->source=htons((unsigned short)natTable[i].nat_port);
-				udp->check=0;
-				skb->csum=csum_partial((unsigned char*)udp,tot_len-ip_len,0);
-				udp->check=csum_tcpudp_magic(ip->saddr,ip->daddr,tot_len-ip_len,ip->protocol,skb->csum);
-				
-			}
-			else if(ip->protocol==ICMP)
-			{
-				
-			}
-			printk("*** %d\n",i);
-			return NF_ACCEPT;
-		}
-	}
-	//添加一条nat记录
-	if((src_ip&nat_mask)==(firewall_ip&nat_mask))
-	{
-		natTable[nnum].nat_ip = src_ip;
-		natTable[nnum].nat_port = src_port;
-		natTable[nnum].firewall_port = firewall_port;
-		firewall_port++;
-		nnum++;
-		if(nnum==MAX_NAT_NUM)nnum=0;
-		return NF_REPEAT;
-	}
-	return NF_ACCEPT;
 }
 
 static int datadev_open(struct inode *inode, struct file *file) {
@@ -438,17 +251,6 @@ static ssize_t datadev_read(struct file *file, char __user *buf, size_t size, lo
 		printk("Log: Read %d bytes\n", ret);
 	}
 	// TODO:获取NAT表
-	else if (op_flag == 3) {
-		ret = log_num * sizeof(Log);
-		if (ret > size) {
-			printk("Read Overflow\n");
-			return size;
-		}
-
-		memcpy(databuf, logs, ret);
-		copy_to_user(buf, databuf, ret);
-		printk("Read %d bytes\n", ret);
-	}
 
 	return ret;
 }
@@ -792,16 +594,12 @@ static int __init myfirewall_init(void) {
 	
 	nf_register_hook(&hook_in_ops);
 	nf_register_hook(&hook_out_ops);
-	nf_register_hook(&hook_nat_in_ops);
-	nf_register_hook(&hook_nat_out_ops);
 
 	printk("Myfw start\n");
 
 	// addRules_test();
 	print_rules();
-	// int i;
-	// for(i = 0; i < 20; ++i)
-	// 	printk("match default rule 0\n");
+
 
 	return 0;
 }
@@ -815,8 +613,6 @@ static void __exit myfirewall_exit(void) {
 
 	nf_unregister_hook(&hook_in_ops);
 	nf_unregister_hook(&hook_out_ops);
-	nf_unregister_hook(&hook_nat_in_ops);
-	nf_unregister_hook(&hook_nat_out_ops);
 
 	printk("Myfw exit\n");
 }

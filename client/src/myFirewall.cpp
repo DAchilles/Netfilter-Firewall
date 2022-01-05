@@ -84,7 +84,6 @@ void getLogs() {
     ifstream inputKernel;
     inputKernel.open(DEV_NAME, ios::binary);
 
-    // FIXME:将Logs输入到List中
     int i=0;
     while (inputKernel.read(databuf, sizeof(Log))) {
         Log *log = new Log(databuf, 0);

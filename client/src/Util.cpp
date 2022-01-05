@@ -29,7 +29,7 @@ std::string ipToStr(unsigned ip) {
     return ip_str;
 }
 
-unsigned strToPtc(std::string ptc_str) {
+int strToPtc(std::string ptc_str) {
     if (ptc_str == "TCP")
         return TCP;
     if (ptc_str == "UDP")
@@ -39,7 +39,7 @@ unsigned strToPtc(std::string ptc_str) {
     return ANY;
 }
 
-std::string ptcToStr(unsigned ptc) {
+std::string ptcToStr(int ptc) {
     if (ptc == TCP) 
         return "TCP";
     if (ptc == UDP)

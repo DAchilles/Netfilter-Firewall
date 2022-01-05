@@ -71,8 +71,8 @@ public:
 
 unsigned strToIp(std::string ip_str);
 std::string ipToStr(unsigned ip);
-unsigned strToPtc(std::string ptc_str);
-std::string ptcToStr(unsigned ptc);
+int strToPtc(std::string ptc_str);
+std::string ptcToStr(int ptc);
 unsigned byteToInt(char *byte, int offset);
 std::string toAct(int x);
 std::string toLog(int x);
